@@ -1,7 +1,7 @@
 import socket
 from numpy import random as r
 class Client(object):
-    def __init__(self,bot_name=b"NAME n00b\n"):
+    def __init__(self,bot_name=b"NAME Superiority\n"):
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.__connect()
         self.__socket.send(bot_name)

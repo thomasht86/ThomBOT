@@ -22,8 +22,7 @@ def run_bot():
     
 
 if __name__ == '__main__':
-    bot_name = b"NAME Superiority\n" # <--- bot name goes here (same as file_NAME)
-    c = C(bot_name = bot_name)
+    c = C()
     json_msg = c.fetch_data()
     msg = M(json_msg)
     map = Map(json_map=msg.map)
