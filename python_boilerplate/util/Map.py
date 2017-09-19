@@ -1,5 +1,6 @@
-import numpy as np
 import heapq
+import math
+import random
 class Map(object):
     def __init__(self,height=31,width=28,pellets_left=240):
         self.height = height
@@ -16,8 +17,8 @@ class Map(object):
         
     def load_json_map(self):
         json_map = self.content
-        self.content = np.empty(shape=(self.height,self.width),dtype=np.object)
-        self.__base_content = np.empty(shape=(self.height,self.width),dtype=np.object)
+        self.content = [['' for i in range(self.width)] for y in range(self.height)]
+        self.__base_content = [['' for i in range(self.width)] for y in range(self.height)]
         for y in range(self.height):
             for x in range(self.width):
                 char = json_map[y][x]
@@ -28,8 +29,10 @@ class Map(object):
         self.__make_available_neighbours_representation()
 
     def reset_map(self):
-        self.content = np.copy(self.__base_content)
+        self.content = list(self.__base_content)
+        self.__find_positions_of_interest()
         self.__find_pellet_positions()
+        self.__make_available_neighbours_representation()
 
         
     def __find_positions_of_interest(self):
@@ -68,7 +71,7 @@ class Map(object):
         if(self.content[y][right] != self.icon.closed): available_neighbours.append(Position(right,y))
         if(self.content[down][x] != self.icon.closed): available_neighbours.append(Position(x,down))
         if(self.content[y][left] != self.icon.closed): available_neighbours.append(Position(left,y))
-        np.random.shuffle(available_neighbours)
+        random.shuffle(available_neighbours)
         return set(available_neighbours)
 
     def __make_available_neighbours_representation(self):
@@ -79,23 +82,33 @@ class Map(object):
     def get_neighbours_of(self,pos):
         return self.map_neighbours[pos]
 
-    def get_move_from(self,pos1,pos2):
-        y_diff = pos2.y - pos1.y
-        x_diff = pos2.x - pos1.x
+    def get_move_between(self,pos1,pos2):
+        #handle normal cases
+        y_diff = int(pos2.y - pos1.y)
+        x_diff = int(pos2.x - pos1.x)
         if y_diff == 0:
-            if x_diff == 0: return -1 #same pos has no move..
-            elif x_diff < 0: return 3
-            else: return 1
-        elif y_diff < 0: return 0
-        else: return 2
+            if x_diff == 0: return -1 #same pos has no move -1 is correct (you are where you wanna go)
+            elif x_diff == -1: return 3
+            elif x_diff == 1: return 1
+        elif y_diff == -1: return 0
+        elif y_diff == 1: return 2
+
+        #handle portal fuckery
+        #hori
+        if pos1.x == 0: return 3 #if this is the position and you wanted to move right then it's caught above
+        elif pos1.x == self.width - 1: return 1 #same with the same same here
+        #verti
+        if pos1.y == 0: return 0 #same for the samesame
+        elif pos1.y == self.height - 1: return 2 #also the same for with of same
+
 
     def get_manhattan_dist(self,pos1,pos2):
         return abs(pos2.y - pos1.y) + abs(pos2.x - pos1.x)
 
     def get_euclidean_dist(self,pos1,pos2):
-        return np.sqrt(np.square(pos2.y - pos1.y) + np.square(pos2.x - pos1.x))
+        return math.sqrt(math.pow(pos2.y - pos1.y,2) + math.pow(pos2.x - pos1.x,2))
 
-    def get_bf_path(self, start, pos_goal=None,char_goal='_'):
+    def get_breadth_first_path(self, start, pos_goal=None,char_goal='_'):
         if pos_goal is None:
             if char_goal == '_': return []
             else: return self.__breadth_first_search(start,char_goal,self.__check_for_char)
@@ -125,7 +138,7 @@ class Map(object):
         while parent is not None:
             path.insert(0,parent)
             parent = came_from[parent]
-        return path
+        return path[1:]
 
     def update_content(self,msg,player_new_poses):
         self.pellets_left = msg.map.pellets_left
@@ -159,7 +172,7 @@ class Map(object):
                 break
         
             for next in self.get_neighbours_of(current):
-                new_cost = cost_so_far[current] + self.step_cost(current, next)
+                new_cost = cost_so_far[current] + self.move_cost(current, next)
                 if next not in cost_so_far or new_cost < cost_so_far[next]:
                     cost_so_far[next] = new_cost
                     priority = new_cost + self.heuristic(goal_pos, next)
@@ -168,9 +181,11 @@ class Map(object):
     
         return self.__get_path(came_from)
 
-    def register_cost_and_heuristic(self,c_func,h_func):
-        self.step_cost = c_func
-        self.heuristic = h_func
+    def heuristic(self,start,goal):
+        return self.get_euclidean_dist(start,goal)
+
+    def move_cost(self,pos1,pos2):
+        return 0.0
 
     def is_blocked(self, map_char):
         return map_char != self.icon.open and map_char != self.icon.pellet and map_char != self.icon.super_pellet and map_char != self.icon.door
@@ -186,7 +201,7 @@ class Map(object):
             print(s)  
             
     def print_specific_positions_on_map(self, specific_poses, spesific_chars=['X']):
-        specified_on_content = np.copy(self.content)
+        specified_on_content = list(self.content)
         for index, pos in enumerate(specific_poses):
             specified_on_content[pos.y][pos.x] = str(spesific_chars[index % len(spesific_chars)])
         for i in range(self.height):

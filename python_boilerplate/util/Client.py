@@ -1,5 +1,5 @@
 import socket
-from AI import AI
+from util.AI import AI
 from util.Message import get_message_type
 from timeit import default_timer as time
 
@@ -43,7 +43,7 @@ class Client(object):
             while get_message_type(msg) == 'stateupdate':
                 start = time()
                 self.ai.update(msg)
-                move = self.ai.get_move()
+                move = self.ai.move()
                 end = time()
                 duration = round((end - start) * 1000,2)
                 self.tot_time += duration
@@ -56,13 +56,13 @@ class Client(object):
             self.ai.reset_for_next_round()
             print("rounds avg: {0}ms\n".format(round(sum(self.rounds_avg) / len(self.rounds_avg),2)))
 
-    def send_move(self, move): #clockwise motherfucker!  can you digg it!?
+    def send_move(self, move):
         if (move == 0): self.__send_up()
         elif (move == 1): self.__send_right()
         elif (move == 2): self.__send_down()
         elif (move == 3): self.__send_left()
         else:
-            print("didn't send anything") #you done goofed!
+            print("That's no move!")
 
     def __send_up(self):
         self.__socket.send(b"up\n")
