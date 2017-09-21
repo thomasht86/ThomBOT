@@ -1,4 +1,4 @@
-from numpy import random as r
+import random as r
 from util.Map import MapIcons as MI
 class AI(object):
     def __init__(self,map=None, player=None):
