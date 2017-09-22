@@ -1,4 +1,4 @@
-from numpy import random as r
+import random as r
 from util.Map import MapIcons as MI
 class AI(object):
     def __init__(self,map=None, player=None):
@@ -6,9 +6,9 @@ class AI(object):
         self.map = map
         self.player = player
         self.map_icons = MI()
-        self.visited_pos = MoveHistory(length=12, history=[[self.player['y'], self.player['x']]])
+        self.visited_pos = MoveHistory(length=17, history=[[self.player['y'], self.player['x']]])
         self.moves_made = 0
-        self.moves_made_switch_point = 20
+        self.moves_made_switch_point = 25
 
     def get_move(self, msg):
         self.player = msg.you
