@@ -16,7 +16,7 @@ def _get_move(ai,m):
     if ai.states.no_danger:
         print("NO DANGER OR BOTH DANGEROUS")
         if m.super_pellets_left > 0:
-            paths = [(len(m.get_astar_path(own, x)),m.get_astar_path(own, x))  for x in list(m.super_pellets_positions)]
+            paths = [(m.get_manhattan_dist(own, x)),m.get_astar_path(own, x))  for x in list(m.super_pellets_positions)]
             shortest = list(sorted(paths, key=lambda x: x[0]))[0]
             path = shortest[1]
             nextpos = path[0]
