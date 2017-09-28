@@ -87,7 +87,7 @@ class Map(object):
         y_diff = int(pos2.y - pos1.y)
         x_diff = int(pos2.x - pos1.x)
         if y_diff == 0:
-            if x_diff == 0: return -1 #same pos has no move -1 is correct (you are where you wanna go)
+            if x_diff == 0: return -3 #same pos has no move -1 is correct (you are where you wanna go)
             elif x_diff == -1: return 3
             elif x_diff == 1: return 1
         elif y_diff == -1: return 0
@@ -169,6 +169,7 @@ class Map(object):
             current = frontier.get()
         
             if current == goal_pos:
+                came_from[Position(-1,-1)] = current
                 break
         
             for next in self.get_neighbours_of(current):
@@ -247,13 +248,15 @@ class Position(object):
 
 class PriorityQueue:
     def __init__(self):
+        from itertools import count
         self.elements = []
+        self.__counter = count()
     
     def empty(self):
         return len(self.elements) == 0
     
     def put(self, item, priority):
-        heapq.heappush(self.elements, (priority, item))
+        heapq.heappush(self.elements, (priority, next(self.__counter), item))
     
     def get(self):
-        return heapq.heappop(self.elements)[1]
+        return heapq.heappop(self.elements)[2]

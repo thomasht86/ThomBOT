@@ -62,7 +62,7 @@ class Client(object):
         elif (move == 2): self.__send_down()
         elif (move == 3): self.__send_left()
         else:
-            print("That's no move!")
+            print("That's no move!, move: {0}".format(move))
 
     def __send_up(self):
         self.__socket.send(b"up\n")

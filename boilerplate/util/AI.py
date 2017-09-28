@@ -43,4 +43,7 @@ class AI(object):
             self.ticker.start_other_is_dangerous_ticker()
 
     def move(self):
-        return _get_move(self,self.map)
+        move = _get_move(self,self.map)
+        if move < 0:
+            print("error") #TODO print all the stuff
+        return move
